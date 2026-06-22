@@ -421,6 +421,28 @@
   .rsvp-msg.success{ color: var(--gold); }
   .rsvp-msg.error{ color: var(--rose); }
 
+  #muteBtn{
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 60;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,107,0.35);
+    background: rgba(10,10,10,0.55);
+    color: var(--gold);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: border-color 0.3s, opacity 0.3s;
+  }
+  #muteBtn.muted{ color: var(--cream-dim); opacity: 0.6; }
+  #muteBtn:hover{ border-color: var(--gold); }
+
   footer{
     text-align: center;
     padding: 3rem 1rem 2.5rem;
@@ -434,6 +456,13 @@
 <body>
 
 <canvas id="particle-canvas"></canvas>
+
+<!-- Background music: upload your file to /music/music.mp3 in the repo -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="music/music.mp3" type="audio/mpeg">
+</audio>
+
+<button id="muteBtn" aria-label="Toggle music" title="Toggle music">♪</button>
 
 <!-- ============ OPENING / RING BOX ============ -->
 <div id="opening">
@@ -590,16 +619,41 @@ const tapHint = document.getElementById('tapHint');
 const enterBtn = document.getElementById('enterBtn');
 const opening = document.getElementById('opening');
 const mainEl = document.getElementById('main');
+const bgMusic = document.getElementById('bgMusic');
+const muteBtn = document.getElementById('muteBtn');
 let boxOpened = false;
+let userMuted = false;
+
+bgMusic.volume = 0.55;
 
 boxWrap.addEventListener('click', () => {
   if(boxOpened) return;
   boxOpened = true;
   boxWrap.classList.add('open');
   tapHint.style.opacity = '0';
+
+  // Start music right on the tap — this counts as a user gesture,
+  // so browsers will allow audio to play.
+  bgMusic.play().catch(() => {
+    // If it still gets blocked, the mute button lets them start it manually.
+  });
+
   setTimeout(() => {
     enterBtn.classList.add('show');
   }, 1300);
+});
+
+muteBtn.addEventListener('click', () => {
+  userMuted = !userMuted;
+  if(userMuted){
+    bgMusic.pause();
+    muteBtn.classList.add('muted');
+    muteBtn.textContent = '✕';
+  } else {
+    bgMusic.play().catch(() => {});
+    muteBtn.classList.remove('muted');
+    muteBtn.textContent = '♪';
+  }
 });
 
 enterBtn.addEventListener('click', () => {
