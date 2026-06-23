@@ -166,6 +166,11 @@
     position: relative;
   }
 
+  #invite{
+    min-height: 88vh;
+    padding-bottom: 2vh;
+  }
+
   .divider{ width: 40px; height: 1px; background: var(--gold); opacity: 0.7; margin: 1.6rem 0; }
 
   #invite .eyebrow{
@@ -198,9 +203,15 @@
     color: var(--ink-dim); margin-bottom: 0.5rem;
   }
 
+  .infinity-row{
+    margin-top: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+  }
   .infinity-wrap{
-    margin-top: 3.2rem;
-    width: 100px;
+    width: 180px;
   }
   .infinity-svg{
     width: 100%;
@@ -208,7 +219,26 @@
     fill: none;
     stroke: var(--gold);
     stroke-width: 1.4;
-    opacity: 0.75;
+    opacity: 0.8;
+  }
+  .scroll-arrow{
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .scroll-arrow.flash{
+    opacity: 0.65;
+    animation: arrow-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes arrow-pulse{
+    0%, 100%{ opacity: 0.25; transform: translateY(0); }
+    50%{ opacity: 0.75; transform: translateY(4px); }
   }
 
   .details-grid{
@@ -362,10 +392,14 @@
     <div class="divider"></div>
     <div class="date"><span>Save the Date</span>1 November 2026</div>
 
-    <div class="infinity-wrap" aria-hidden="true">
-      <svg viewBox="0 0 100 50" class="infinity-svg">
-        <path d="M25,25 C25,12 35,8 42,15 C48,21 50,29 50,29 C50,29 52,21 58,15 C65,8 75,12 75,25 C75,38 65,42 58,35 C52,29 50,21 50,21 C50,21 48,29 42,35 C35,42 25,38 25,25 Z"/>
-      </svg>
+    <div class="infinity-row">
+      <svg viewBox="0 0 40 40" class="scroll-arrow arrow-left" id="arrowLeft"><path d="M10 14 L20 26 L30 14" /></svg>
+      <div class="infinity-wrap" aria-hidden="true">
+        <svg viewBox="0 0 100 50" class="infinity-svg">
+          <path d="M25,25 C25,12 35,8 42,15 C48,21 50,29 50,29 C50,29 52,21 58,15 C65,8 75,12 75,25 C75,38 65,42 58,35 C52,29 50,21 50,21 C50,21 48,29 42,35 C35,42 25,38 25,25 Z"/>
+        </svg>
+      </div>
+      <svg viewBox="0 0 40 40" class="scroll-arrow arrow-right" id="arrowRight"><path d="M10 14 L20 26 L30 14" /></svg>
     </div>
   </section>
 
@@ -559,7 +593,13 @@ muteBtn.addEventListener('click', () => {
 enterBtn.addEventListener('click', () => {
   opening.classList.add('fade-out');
   document.body.style.overflow = 'auto';
-  setTimeout(() => { mainEl.classList.add('visible'); }, 300);
+  setTimeout(() => {
+    mainEl.classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('arrowLeft').classList.add('flash');
+      document.getElementById('arrowRight').classList.add('flash');
+    }, 7000);
+  }, 300);
 });
 
 /* ============================================================
