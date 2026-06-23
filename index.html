@@ -113,7 +113,7 @@
   }
   .box-scene:hover .box-rig{ transform: rotateX(-18deg) rotateY(-22deg); }
 
-  /* base cuboid: width 160, height 90, depth 110 */
+  /* base cuboid: width 160, height 90, depth 110 — black velvet exterior, satin floor */
   .base{
     position: absolute;
     top: 70px; left: 30px;
@@ -121,38 +121,29 @@
     transform-style: preserve-3d;
   }
   .base .face{ position: absolute; top: 0; left: 0; }
-  .base .f-front{
-    width: 160px; height: 90px;
-    background: linear-gradient(160deg, var(--box-mid), var(--box-dark));
-    transform: translateZ(55px);
-    border-radius: 4px;
-    box-shadow: inset 0 0 0 1px rgba(169,129,62,0.25);
+
+  /* velvet texture: deep matte black with soft fiber-like noise and gentle sheen */
+  .velvet{
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.05), transparent 55%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.015) 0px, rgba(0,0,0,0) 1.5px, rgba(255,255,255,0.015) 3px),
+      linear-gradient(155deg, #1b1a19 0%, #0a0908 60%, #050504 100%);
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(255,255,255,0.03);
   }
-  .base .f-back{
-    width: 160px; height: 90px;
-    background: var(--box-dark);
-    transform: translateZ(-55px) rotateY(180deg);
+
+  /* satin interior: warm cream with a soft diagonal sheen */
+  .satin{
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 35%),
+      linear-gradient(310deg, #fbf3e3 0%, #efe2c8 55%, #e6d6b4 100%);
+    box-shadow: inset 0 2px 10px rgba(120,95,50,0.25);
   }
-  .base .f-left{
-    width: 110px; height: 90px;
-    background: #100f0d;
-    transform-origin: 0 50%;
-    transform: rotateY(-90deg);
-  }
-  .base .f-right{
-    width: 110px; height: 90px;
-    left: 160px;
-    background: #161410;
-    transform-origin: 0 50%;
-    transform: rotateY(90deg);
-  }
-  .base .f-bottom{
-    width: 160px; height: 110px;
-    top: 90px;
-    background: #0c0b0a;
-    transform-origin: top;
-    transform: rotateX(90deg);
-  }
+
+  .base .f-front{ width: 160px; height: 90px; transform: translateZ(55px); border-radius: 4px; }
+  .base .f-back{ width: 160px; height: 90px; transform: translateZ(-55px) rotateY(180deg); }
+  .base .f-left{ width: 110px; height: 90px; transform-origin: 0 50%; transform: rotateY(-90deg); }
+  .base .f-right{ width: 110px; height: 90px; left: 160px; transform-origin: 0 50%; transform: rotateY(90deg); }
+  .base .f-bottom{ width: 160px; height: 110px; top: 90px; transform-origin: top; transform: rotateX(90deg); border-radius: 2px; }
 
   /* lid: hinged at the back-top edge of the base */
   .lid-hinge{
@@ -170,51 +161,97 @@
     transform-style: preserve-3d;
     transform: rotateX(90deg);
   }
-  .lid .face{ position: absolute; top: 0; left: 0; }
+  .lid .face{ position: absolute; top: 0; left: 0; backface-visibility: hidden; }
+
+  /* outer lid (velvet, visible while closed) */
   .lid .lid-top{
     width: 160px; height: 110px;
-    background: linear-gradient(160deg, #2d2a24, #16140f);
     border-radius: 4px;
-    box-shadow: inset 0 0 0 1px rgba(169,129,62,0.3);
   }
   .lid .lid-top::before{
     content:'';
     position:absolute; left:50%; top:50%;
     width: 26px; height: 26px;
     transform: translate(-50%,-50%) rotate(45deg);
-    border: 1px solid rgba(169,129,62,0.55);
+    border: 1px solid rgba(169,129,62,0.45);
   }
+
+  /* inner lid (satin, revealed once the box opens — double-sided trick) */
+  .lid .lid-inner{
+    width: 160px; height: 110px;
+    border-radius: 4px;
+    transform: rotateY(180deg) translateZ(0.5px);
+  }
+
   .lid .lid-front{
     width: 160px; height: 22px;
-    background: linear-gradient(160deg, var(--box-mid), var(--box-dark));
     transform-origin: top;
-    transform: rotateX(-90deg) translateY(0);
+    transform: rotateX(-90deg);
     top: 0;
   }
 
   .box-scene.open .lid-hinge{
-    transform: translateZ(-55px) rotateX(-108deg);
+    transform: translateZ(-55px) rotateX(-112deg);
   }
 
+  /* ---- rings: plain silver band + simple diamond band, side by side ---- */
   .rings{
     position: absolute;
-    top: 95px; left: 70px;
-    width: 100px; height: 50px;
+    top: 98px; left: 62px;
+    width: 110px; height: 50px;
     transform-style: preserve-3d;
-    transform: translateZ(20px) rotateX(0deg);
+    transform: translateZ(18px) rotateX(58deg);
     opacity: 0;
-    transition: opacity 1s ease 0.7s;
+    transition: opacity 1s ease 0.8s;
   }
   .box-scene.open .rings{ opacity: 1; }
+
   .ring{
     position: absolute;
-    width: 42px; height: 42px;
-    border: 5px solid var(--gold);
+    width: 40px; height: 40px;
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--gold-soft);
+    top: 2px;
   }
-  .ring.r1{ left: 4px; transform: rotate(-8deg); }
-  .ring.r2{ left: 42px; top: 4px; transform: rotate(8deg); }
+  /* plain silver band: metallic ring via conic-style layered gradient */
+  .ring.silver{
+    left: 6px;
+    background: conic-gradient(from 200deg, #cfd2d6, #f5f6f8 25%, #9a9ea4 50%, #e7e9eb 75%, #cfd2d6);
+    box-shadow: inset 0 0 0 9px #fff, inset 0 0 0 10px #b8bcc1, 0 2px 4px rgba(0,0,0,0.35);
+  }
+  .ring.silver::before{
+    content:'';
+    position:absolute; inset: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), transparent 60%);
+  }
+
+  /* diamond band: same metallic band with a small set stone on top */
+  .ring.diamond{
+    left: 56px;
+    background: conic-gradient(from 200deg, #cfd2d6, #f5f6f8 25%, #9a9ea4 50%, #e7e9eb 75%, #cfd2d6);
+    box-shadow: inset 0 0 0 9px #fff, inset 0 0 0 10px #b8bcc1, 0 2px 4px rgba(0,0,0,0.35);
+  }
+  .ring.diamond::before{
+    content:'';
+    position:absolute; inset: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), transparent 60%);
+  }
+  .gem{
+    position: absolute;
+    left: 56px; top: -7px;
+    width: 11px; height: 11px;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #ffffff, #cfe9ff 40%, #ffffff 70%, #aee0ff);
+    box-shadow: 0 0 6px rgba(255,255,255,0.85), 0 0 2px rgba(180,220,255,0.9);
+  }
+  .gem::after{
+    content:'';
+    position:absolute; left:2px; top:2px;
+    width: 4px; height: 4px;
+    background: #fff;
+    opacity: 0.9;
+  }
 
   .tap-hint{
     font-size: 0.72rem;
@@ -405,20 +442,22 @@
   <div class="box-scene" id="boxScene">
     <div class="box-rig">
       <div class="base">
-        <div class="face f-back"></div>
-        <div class="face f-left"></div>
-        <div class="face f-right"></div>
-        <div class="face f-bottom"></div>
-        <div class="face f-front"></div>
+        <div class="face f-back velvet"></div>
+        <div class="face f-left velvet"></div>
+        <div class="face f-right velvet"></div>
+        <div class="face f-bottom satin"></div>
+        <div class="face f-front velvet"></div>
       </div>
       <div class="rings">
-        <div class="ring r1"></div>
-        <div class="ring r2"></div>
+        <div class="ring silver"></div>
+        <div class="ring diamond"></div>
+        <div class="gem"></div>
       </div>
       <div class="lid-hinge" id="lidHinge">
         <div class="lid">
-          <div class="face lid-front"></div>
-          <div class="face lid-top"></div>
+          <div class="face lid-front velvet"></div>
+          <div class="face lid-top velvet"></div>
+          <div class="face lid-inner satin"></div>
         </div>
       </div>
     </div>
