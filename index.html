@@ -222,23 +222,23 @@
     opacity: 0.8;
   }
   .scroll-arrow{
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     fill: none;
-    stroke: var(--gold);
-    stroke-width: 2.2;
+    stroke: var(--ink);
+    stroke-width: 2.4;
     stroke-linecap: round;
     stroke-linejoin: round;
     opacity: 0;
     transition: opacity 0.6s ease;
   }
   .scroll-arrow.flash{
-    opacity: 0.65;
+    opacity: 0.85;
     animation: arrow-pulse 1.8s ease-in-out infinite;
   }
   @keyframes arrow-pulse{
-    0%, 100%{ opacity: 0.25; transform: translateY(0); }
-    50%{ opacity: 0.75; transform: translateY(4px); }
+    0%, 100%{ opacity: 0.5; transform: translateY(0); }
+    50%{ opacity: 1; transform: translateY(5px); }
   }
 
   .details-grid{
@@ -266,6 +266,14 @@
   #rsvp form{
     display: flex; flex-direction: column; gap: 1.3rem;
     width: 100%; max-width: 420px; margin-top: 1.5rem; text-align: left;
+  }
+
+  .no-children-note{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--gold);
+    margin-top: 0.8rem;
   }
   .field label{
     display: block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
@@ -416,6 +424,7 @@
         <span class="icon">🕚</span>
         <div class="label">Arrival</div>
         <div class="value">11:00 AM</div>
+        <div class="sub">Reception to follow</div>
       </div>
       <div class="detail-card">
         <span class="icon">👔</span>
@@ -436,6 +445,7 @@
     <div class="eyebrow">Kindly Respond</div>
     <h2 style="font-size:clamp(1.8rem,4vw,2.6rem); margin:0.4rem 0 0.6rem; color:var(--ink);">RSVP</h2>
     <p style="color:var(--ink-dim); font-size:0.9rem; max-width:32ch;">We'd love to know if you'll be celebrating with us.</p>
+    <p class="no-children-note">With love, we regret that no children will be allowed.</p>
 
     <form id="rsvpForm">
       <div class="field">
@@ -469,6 +479,11 @@
       <button type="submit" class="submit-btn" id="submitBtn">Send RSVP</button>
       <div class="rsvp-msg" id="rsvpMsg"></div>
     </form>
+
+    <div class="infinity-row" style="margin-top:2.4rem;">
+      <svg viewBox="0 0 40 40" class="scroll-arrow flash"><path d="M10 14 L20 26 L30 14" /></svg>
+      <svg viewBox="0 0 40 40" class="scroll-arrow flash"><path d="M10 14 L20 26 L30 14" /></svg>
+    </div>
   </section>
 
   <section id="location">
