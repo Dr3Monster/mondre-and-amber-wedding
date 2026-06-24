@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Mondré & Amber — 1 November 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #ffffff;
+    --bg-2: #f6f3ec;
+    --ink: #161513;
+    --ink-dim: #6b6660;
+    --gold: #a9813e;
+    --gold-soft: rgba(169,129,62,0.3);
+    --rose: #9c5a4a;
+    --box-dark: #1c1a17;
+    --box-mid: #2a2722;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .serif{ font-family: 'Cormorant Garamond', serif; }
+  a{ color: var(--gold); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  /* ============ PARTICLES ============ */
+  #particle-canvas{
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    z-index: 0; pointer-events: none;
+  }
+
+  /* ============ MUSIC STATUS (debug-friendly) ============ */
+  #muteBtn{
+    position: fixed; top: 18px; right: 18px; z-index: 60;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--gold-soft);
+    background: rgba(255,255,255,0.7);
+    color: var(--gold);
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: border-color 0.3s, opacity 0.3s;
+  }
+  #muteBtn.muted{ color: var(--ink-dim); opacity: 0.6; }
+  #muteBtn:hover{ border-color: var(--gold); }
+  #musicStatus{
+    position: fixed;
+    top: 62px; right: 18px;
+    z-index: 60;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    color: var(--rose);
+    background: rgba(255,255,255,0.85);
+    padding: 4px 8px;
+    border-radius: 4px;
+    max-width: 180px;
+    text-align: right;
+    display: none;
+  }
+  #musicStatus.show{ display: block; }
+
+  /* ============ OPENING SCREEN ============ */
+  #opening{
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, #ffffff 0%, #f1ede4 80%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 50;
+    transition: opacity 1.1s ease, visibility 1.1s ease;
+  }
+  #opening.fade-out{ opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .names-mini{
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    margin-bottom: 3rem;
+    text-align: center;
+    font-weight: 400;
+  }
+  .names-mini em{ font-style: italic; color: var(--gold); }
+
+  /* ---- ring box: real photos, crossfade on tap ---- */
+  .box-scene{
+    width: 230px;
+    height: 300px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+  }
+  .photo-frame{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -20px rgba(0,0,0,0.45), 0 0 0 1px rgba(169,129,62,0.25);
+  }
+  .box-photo{
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: opacity 1.1s ease, transform 1.1s ease;
+  }
+  .closed-photo{ opacity: 1; transform: scale(1); z-index: 2; }
+  .open-photo{ opacity: 0; transform: scale(1.03); z-index: 1; }
+  .box-scene.open .closed-photo{ opacity: 0; }
+  .box-scene.open .open-photo{ opacity: 1; transform: scale(1); }
+
+  .tap-hint{
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+
+  .enter-btn{
+    margin-top: 2rem;
+    background: transparent;
+    border: 1px solid var(--gold-soft);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 0.9rem 2.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease, transform 0.8s ease, border-color 0.3s, background 0.3s;
+  }
+  .enter-btn.show{ opacity: 1; transform: translateY(0); }
+  .enter-btn:hover{ background: var(--gold-soft); border-color: var(--gold); }
+
+  /* ============ MAIN CONTENT ============ */
+  #main{
+    position: relative; z-index: 1;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+  }
+  #main.visible{ opacity: 1; }
+
+  section{
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 6vh 6vw;
+    position: relative;
+  }
+
+  #invite{
+    min-height: 88vh;
+    padding-bottom: 2vh;
+  }
+
+  .divider{ width: 40px; height: 1px; background: var(--gold); opacity: 0.7; margin: 1.6rem 0; }
+
+  #invite .eyebrow{
+    font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.2rem;
+  }
+  #invite h1{
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    font-weight: 500; margin: 0; line-height: 1.05;
+    color: var(--ink);
+  }
+  #invite h1 .amp{ color: var(--gold); font-style: italic; font-weight: 400; margin: 0 0.15em; }
+  #invite p.lede{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+    color: var(--ink-dim);
+    max-width: 38ch;
+    margin: 1.4rem 0 0;
+    line-height: 1.6;
+  }
+  #invite .date{
+    margin-top: 2.2rem;
+    font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  #invite .date span{
+    display: block; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 0.5rem;
+  }
+
+  .infinity-row{
+    margin-top: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+  }
+  .infinity-wrap{
+    width: 180px;
+  }
+  .infinity-svg{
+    width: 100%;
+    height: auto;
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.4;
+    opacity: 0.8;
+  }
+  .scroll-arrow{
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .scroll-arrow.flash{
+    opacity: 0.85;
+    animation: arrow-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes arrow-pulse{
+    0%, 100%{ opacity: 0.5; transform: translateY(0); }
+    50%{ opacity: 1; transform: translateY(5px); }
+  }
+
+  .details-grid{
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem;
+    max-width: 900px; width: 100%; margin-top: 1rem;
+  }
+  @media (max-width: 700px){ .details-grid{ grid-template-columns: 1fr; gap: 2.2rem; } }
+  .detail-card .icon{ font-size: 1.6rem; margin-bottom: 0.8rem; display: block; }
+  .detail-card .label{
+    font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .detail-card .value{ font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--ink); }
+  .detail-card .sub{ font-size: 0.8rem; color: var(--ink-dim); margin-top: 0.3rem; }
+
+  #countdown-row{ display: flex; gap: clamp(1rem, 4vw, 2.6rem); margin-top: 3.5rem; }
+  .cd-unit{ display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .cd-num{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 500; color: var(--ink); line-height: 1;
+  }
+  .cd-label{ font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-top: 0.5rem; }
+
+  #rsvp form{
+    display: flex; flex-direction: column; gap: 1.3rem;
+    width: 100%; max-width: 420px; margin-top: 1.5rem; text-align: left;
+  }
+
+  .no-children-note{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--gold);
+    margin-top: 0.8rem;
+  }
+  .field label{
+    display: block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .field input[type="text"], .field textarea{
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid rgba(169,129,62,0.3);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .field input:focus, .field textarea:focus{ border-color: var(--gold); }
+  .field textarea{ min-height: 80px; resize: vertical; }
+
+  .choice-row{ display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .choice-btn{
+    flex: 1; text-align: center;
+    border: 1px solid rgba(169,129,62,0.35);
+    background: transparent;
+    color: var(--ink-dim);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.7rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .choice-btn.selected{ border-color: var(--gold); color: var(--ink); background: rgba(169,129,62,0.12); }
+  .meal-row{ display: none; }
+  .meal-row.show{ display: flex; gap: 0.8rem; }
+
+  .submit-btn{
+    margin-top: 0.6rem;
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    padding: 0.95rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+  .submit-btn:hover{ opacity: 0.88; }
+  .submit-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+  .rsvp-msg{ margin-top: 1.2rem; font-size: 0.85rem; color: var(--ink-dim); min-height: 1.2em; }
+  .rsvp-msg.success{ color: var(--gold); }
+  .rsvp-msg.error{ color: var(--rose); }
+
+  .map-frame{
+    width: 100%;
+    max-width: 480px;
+    height: 280px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 18px 40px -16px rgba(0,0,0,0.25), 0 0 0 1px rgba(169,129,62,0.2);
+  }
+  .directions-link{
+    display: inline-block;
+    margin-top: 1.4rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold-soft);
+    padding-bottom: 3px;
+  }
+
+  footer{
+    text-align: center;
+    padding: 3rem 1rem 2.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-dim);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- Background music: must live at /music/music.mp3 in the repo -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="music/music.mp3" type="audio/mpeg">
+</audio>
+
+<button id="muteBtn" aria-label="Toggle music" title="Toggle music">♪</button>
+<div id="musicStatus"></div>
+
+<!-- ============ OPENING / RING BOX ============ -->
+<div id="opening">
+  <div class="names-mini">Mondré <em>&amp;</em> Amber</div>
+
+  <div class="box-scene" id="boxScene">
+    <div class="photo-frame">
+      <img src="images/box-closed.jpg" alt="Closed ring box" class="box-photo closed-photo">
+      <img src="images/box-open.jpg" alt="Open ring box with wedding bands" class="box-photo open-photo">
+    </div>
+  </div>
+
+  <div class="tap-hint" id="tapHint">Tap the box to open</div>
+  <button class="enter-btn" id="enterBtn">View Invitation</button>
+</div>
+
+<!-- ============ MAIN INVITATION ============ -->
+<div id="main">
+
+  <section id="invite">
+    <div class="eyebrow">Together with their families</div>
+    <h1>Mondré<span class="amp">&amp;</span>Amber</h1>
+    <p class="lede">invite you to join them for a day of love, laughter, and celebration as they begin their forever together.</p>
+    <div class="divider"></div>
+    <div class="date"><span>Save the Date</span>1 November 2026</div>
+
+    <div class="infinity-row">
+      <svg viewBox="0 0 40 40" class="scroll-arrow arrow-left" id="arrowLeft"><path d="M10 14 L20 26 L30 14" /></svg>
+      <div class="infinity-wrap" aria-hidden="true">
+        <svg viewBox="0 0 100 50" class="infinity-svg">
+          <path d="M25,25 C25,12 35,8 42,15 C48,21 50,29 50,29 C50,29 52,21 58,15 C65,8 75,12 75,25 C75,38 65,42 58,35 C52,29 50,21 50,21 C50,21 48,29 42,35 C35,42 25,38 25,25 Z"/>
+        </svg>
+      </div>
+      <svg viewBox="0 0 40 40" class="scroll-arrow arrow-right" id="arrowRight"><path d="M10 14 L20 26 L30 14" /></svg>
+    </div>
+  </section>
+
+  <section id="details">
+    <div class="eyebrow">The Details</div>
+    <h2 style="font-size:clamp(1.8rem,4vw,2.6rem); margin:0.4rem 0 2.5rem; color:var(--ink);">Where &amp; When</h2>
+    <div class="details-grid">
+      <div class="detail-card">
+        <span class="icon">📍</span>
+        <div class="label">Venue</div>
+        <div class="value">Black Marlin</div>
+      </div>
+      <div class="detail-card">
+        <span class="icon">🕚</span>
+        <div class="label">Arrival</div>
+        <div class="value">11:00 AM</div>
+        <div class="sub">Reception to follow</div>
+      </div>
+      <div class="detail-card">
+        <span class="icon">👔</span>
+        <div class="label">Dress Code</div>
+        <div class="value">Semi-Formal</div>
+      </div>
+    </div>
+
+    <div id="countdown-row">
+      <div class="cd-unit"><div class="cd-num" id="cd-days">00</div><div class="cd-label">Days</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-hours">00</div><div class="cd-label">Hours</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-mins">00</div><div class="cd-label">Minutes</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-secs">00</div><div class="cd-label">Seconds</div></div>
+    </div>
+  </section>
+
+  <section id="rsvp">
+    <div class="eyebrow">Kindly Respond</div>
+    <h2 style="font-size:clamp(1.8rem,4vw,2.6rem); margin:0.4rem 0 0.6rem; color:var(--ink);">RSVP</h2>
+    <p style="color:var(--ink-dim); font-size:0.9rem; max-width:32ch;">We'd love to know if you'll be celebrating with us.</p>
+    <p class="no-children-note">With love, we regret that no children will be allowed.</p>
+
+    <form id="rsvpForm">
+      <div class="field">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required placeholder="Your name">
+      </div>
+
+      <div class="field">
+        <label>Will you attend?</label>
+        <div class="choice-row" id="attendRow">
+          <button type="button" class="choice-btn" data-value="Yes, with pleasure">Yes, with pleasure</button>
+          <button type="button" class="choice-btn" data-value="Regretfully decline">Regretfully decline</button>
+        </div>
+      </div>
+
+      <div class="field meal-row" id="mealRow">
+        <div style="width:100%;">
+          <label>Meal Choice</label>
+          <div class="choice-row" id="mealChoiceRow">
+            <button type="button" class="choice-btn" data-value="Steak">Steak</button>
+            <button type="button" class="choice-btn" data-value="Fish">Fish</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="message">Message (optional)</label>
+        <textarea id="message" name="message" placeholder="Leave a note for the couple..."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Send RSVP</button>
+      <div class="rsvp-msg" id="rsvpMsg"></div>
+    </form>
+
+    <div class="infinity-row" style="margin-top:2.4rem;">
+      <svg viewBox="0 0 40 40" class="scroll-arrow flash"><path d="M10 14 L20 26 L30 14" /></svg>
+      <svg viewBox="0 0 40 40" class="scroll-arrow flash"><path d="M10 14 L20 26 L30 14" /></svg>
+    </div>
+  </section>
+
+  <section id="location">
+    <div class="eyebrow">Find Us</div>
+    <h2 style="font-size:clamp(1.8rem,4vw,2.6rem); margin:0.4rem 0 0.6rem; color:var(--ink);">The Venue</h2>
+    <p style="color:var(--ink-dim); font-size:0.9rem; max-width:36ch; margin-bottom:1.8rem;">
+      Black Marlin Restaurant, Millers Point, Simon's Town, Cape Town
+    </p>
+    <div class="map-frame">
+      <iframe
+        src="https://www.google.com/maps?q=Black+Marlin+Restaurant,+Millers+Point,+Simon%27s+Town,+Cape+Town&output=embed"
+        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+    <a class="directions-link" href="https://www.google.com/maps/dir/?api=1&destination=Black+Marlin+Restaurant+Millers+Point+Simon%27s+Town+Cape+Town" target="_blank" rel="noopener">
+      Get Directions →
+    </a>
+  </section>
+
+  <footer>MONDRÉ &amp; AMBER · 1 · 11 · 2026</footer>
+</div>
+
+<script>
+/* ============================================================
+   1. AMBIENT PARTICLES (gold flecks on white background)
+============================================================ */
+(function(){
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let w, h;
+
+  function resize(){ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const count = reduceMotion ? 0 : Math.min(50, Math.floor(w / 26));
+
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*w, y: Math.random()*h,
+      r: Math.random()*1.6 + 0.5,
+      vy: -(Math.random()*0.22 + 0.05),
+      vx: (Math.random()-0.5)*0.12,
+      o: Math.random()*0.35 + 0.1
+    });
+  }
+
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#a9813e';
+    particles.forEach(p=>{
+      p.y += p.vy; p.x += p.vx;
+      if(p.y < -10){ p.y = h+10; p.x = Math.random()*w; }
+      ctx.globalAlpha = p.o;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ============================================================
+   2. RING BOX OPENING + MUSIC
+============================================================ */
+const boxScene = document.getElementById('boxScene');
+const tapHint = document.getElementById('tapHint');
+const enterBtn = document.getElementById('enterBtn');
+const opening = document.getElementById('opening');
+const mainEl = document.getElementById('main');
+const bgMusic = document.getElementById('bgMusic');
+const muteBtn = document.getElementById('muteBtn');
+const musicStatus = document.getElementById('musicStatus');
+let boxOpened = false;
+let userMuted = false;
+
+bgMusic.volume = 0.55;
+
+bgMusic.addEventListener('error', () => {
+  musicStatus.textContent = "Music file not found — check it's at music/music.mp3 in your repo.";
+  musicStatus.classList.add('show');
+});
+
+boxScene.addEventListener('click', () => {
+  if(boxOpened) return;
+  boxOpened = true;
+  boxScene.classList.add('open');
+  tapHint.style.opacity = '0';
+
+  bgMusic.play().then(() => {
+    musicStatus.classList.remove('show');
+  }).catch(() => {
+    musicStatus.textContent = "Tap the ♪ button to start the music.";
+    musicStatus.classList.add('show');
+  });
+
+  setTimeout(() => { enterBtn.classList.add('show'); }, 1300);
+});
+
+muteBtn.addEventListener('click', () => {
+  userMuted = !userMuted;
+  if(userMuted){
+    bgMusic.pause();
+    muteBtn.classList.add('muted');
+    muteBtn.textContent = '✕';
+  } else {
+    bgMusic.play().then(() => {
+      musicStatus.classList.remove('show');
+    }).catch(() => {
+      musicStatus.textContent = "Music couldn't start — check the file is uploaded correctly.";
+      musicStatus.classList.add('show');
+    });
+    muteBtn.classList.remove('muted');
+    muteBtn.textContent = '♪';
+  }
+});
+
+enterBtn.addEventListener('click', () => {
+  opening.classList.add('fade-out');
+  document.body.style.overflow = 'auto';
+  setTimeout(() => {
+    mainEl.classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('arrowLeft').classList.add('flash');
+      document.getElementById('arrowRight').classList.add('flash');
+    }, 7000);
+  }, 300);
+});
+
+/* ============================================================
+   3. COUNTDOWN — 1 November 2026, 11:00 SAST (UTC+2)
+============================================================ */
+const weddingDate = new Date('2026-11-01T11:00:00+02:00').getTime();
+
+function updateCountdown(){
+  const now = Date.now();
+  const diff = Math.max(0, weddingDate - now);
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const secs = Math.floor((diff % (1000*60)) / 1000);
+
+  document.getElementById('cd-days').textContent = String(days).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
+  document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+/* ============================================================
+   4. RSVP FORM LOGIC + GOOGLE SHEETS SUBMISSION
+============================================================ */
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBtkv8gy9n_HF3CsyiVUdjzG0v8wxrvxqaWfjZfOnolOGSLKQ4PBmuH0fhY0jcOQvX/exec";
+
+let attending = '';
+let meal = '';
+
+document.querySelectorAll('#attendRow .choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#attendRow .choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    attending = btn.dataset.value;
+    const mealRow = document.getElementById('mealRow');
+    if(attending === 'Yes, with pleasure'){
+      mealRow.classList.add('show');
+    } else {
+      mealRow.classList.remove('show');
+      meal = '';
+      document.querySelectorAll('#mealChoiceRow .choice-btn').forEach(b => b.classList.remove('selected'));
+    }
+  });
+});
+
+document.querySelectorAll('#mealChoiceRow .choice-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mealChoiceRow .choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    meal = btn.dataset.value;
+  });
+});
+
+const rsvpForm = document.getElementById('rsvpForm');
+const rsvpMsg = document.getElementById('rsvpMsg');
+const submitBtn = document.getElementById('submitBtn');
+
+rsvpForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const message = document.getElementById('message').value.trim();
+
+  if(!name){ showMsg('Please enter your name.', 'error'); return; }
+  if(!attending){ showMsg('Please let us know if you can attend.', 'error'); return; }
+  if(attending === 'Yes, with pleasure' && !meal){ showMsg('Please choose a meal option.', 'error'); return; }
+
+  if(GOOGLE_SCRIPT_URL.includes('PASTE_YOUR')){
+    showMsg('RSVP captured locally — connect Google Sheets to save it (see setup guide).', 'success');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
+
+  const payload = { name, attending, meal, message, timestamp: new Date().toISOString() };
+
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    showMsg('Thank you! Your RSVP has been received.', 'success');
+    rsvpForm.reset();
+    attending = ''; meal = '';
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('mealRow').classList.remove('show');
+  })
+  .catch(() => { showMsg('Something went wrong. Please try again.', 'error'); })
+  .finally(() => {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send RSVP';
+  });
+});
+
+function showMsg(text, type){
+  rsvpMsg.textContent = text;
+  rsvpMsg.className = 'rsvp-msg ' + type;
+}
+</script>
+
+</body>
+</html>
